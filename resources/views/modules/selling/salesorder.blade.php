@@ -149,8 +149,8 @@
                 <td class="text-danger">{{$row->payment_status}}</td>
                 <td>{{$row->payment_track}}</td>
                 <td class="text-bold">{{$row->payment_balance}}</td>
-                <td class="text-bold">{{$row->date}}</td>
-                <td><button type="button" class="btn btn-primary btn-sm" disabled>Release</button></td>
+                <td class="text-bold">{{$row->transaction_date}}</td>
+                <td><button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editSalePrompt">Edit</button></td>
             </tr>
             @endforeach
         </tbody>
@@ -301,7 +301,8 @@
                                               <td></td>
                                               <td class="font-weight-bold text-center">Product Code</td>
                                               <td class="font-weight-bold text-center">Quantity Purchased</td>
-                                              <td class="font-weight-bold text-center">Cost Per Unit</td>
+                                              <td class="font-weight-bold text-center">Actions</td>
+                                              <td class="font-weight-bold text-center">Cost per unit</td>
                                             </tr>
                                           </thead>
                                           <tbody>
@@ -778,12 +779,6 @@
             <div class="modal-footer d-flex">
                 <span id="notif" class="mr-auto text-danger">There are Missing inputs!</span>
                 <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
-                <div class="modal-footer">
-                    <a class="nav-link menu" href="javascript:onclick=closeSaleTab;" data-parent="selling"
-                        data-name="New Sale Order" data-dismiss="modal">
-                        Edit in full page
-                    </a>
-                </div>
             </div>
         </div>
     </div>
@@ -791,6 +786,283 @@
     <!--End Form-->
 </div>
 
+
+<!-- EIDT MODAL SALES ORDER START -->
+<div class="modal fade" id="editSalePrompt" tabindex="-1" role="dialog" aria-labelledby="editSalePromptTitle" aria-hidden="true">
+    <!--Sales Order Form-->
+    <form method="POST" enctype="multipart/form-data" action="#" id="sales_order_form">
+                @csrf
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Edit Order</h5>
+                <div class="d-flex flex-row-reverse">
+                    <button type="submit" class="btn btn-primary m-1" id="saveSaleOrder" value="Submit">
+                        Save
+                    </button>
+                    <button type="button" class="btn btn-secondary m-1" data-dismiss="modal"
+                        data-target="#newSalePrompt" id="closeSaleOrderModal">
+                        Close
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body p-5">
+                <!--
+                    Back-end note: The contents of 'salesorderform.php' were transferred here instead of using 
+                    'include' syntax for easier utilization of Blade template features.
+                --> 
+                <div class="accordion" id="accordion">
+                    <div class="card">
+                        <div class="card-header" id="heading1">
+                            <h2 class="mb-0">
+                                <button class="btn btn-link d-flex w-100" type="button" data-toggle="collapse"
+                                    data-target="#salesOrderCard1" aria-expanded="true">
+                                    CUSTOMER INFORMATION
+                                </button>
+                            </h2>
+                        </div>
+                        <div class="collapse show" id="salesOrderCard1">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col">
+                                        <br>
+                                        <label class=" text-nowrap align-middle">
+                                            Customer ID
+                                        </label>
+                                        <!--
+                                            Old input for searching customer id: change back when needed
+                                            <div class="d-flex">
+                                                <input type="number" class="form-input form-control" max="6" value="0000001" id="custId" required>
+                                                <button class="btn btn-primary">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                            </div>
+                                            <br>
+                                        -->
+                                        <input list="customers" class="form-input form-control" name="customer_id" onchange="customeridselector(value);" disabled>
+                                        <datalist id="customers">
+                                        @foreach ($customers as $row)
+                                          <option value="{{$row->id}}"> {{$row->customer_lname}} {{$row->customer_fname}} </option>
+                                        @endforeach
+                                          <option value=" + Add new"> 
+                                        </datalist> 
+                                        <br>
+                                        <label class=" text-nowrap align-middle">
+                                            First Name
+                                        </label>
+                                        <input type="text" required class="form-input form-control" id="fName" required name ="fName" disabled>
+                                        <br>
+                                        <label class=" text-nowrap align-middle">
+                                            Last Name
+                                        </label>
+                                        <input type="text" required class="form-input form-control" id="lName" name="lName" disabled>
+                                        <br>
+                                        <label class=" text-nowrap align-middle">
+                                            Contact Number
+                                        </label>
+                                        <input type="text" required class="form-input form-control" id="contactNum" name="contactNum" disabled>
+                                    </div>
+                                    <div class="col">
+                                        <br>
+                                        <label class=" text-nowrap align-middle">
+                                            Email Address
+                                        </label>
+                                        <input type="text" required class="form-input form-control" id="custEmail" name="custEmail" disabled>
+                                        <br>
+                                        <label class=" text-nowrap align-middle">
+                                            Branch Name
+                                        </label>
+                                        <input type="text" required class="form-input form-control" id="branchName" name="branchName" disabled>
+                                        <br>
+                                        <label class=" text-nowrap align-middle">
+                                            Company Name
+                                        </label>
+                                        <input type="text" required class="form-input form-control" id="companyName" name="companyName" disabled>
+                                        <br>
+                                        <label>Address</label>
+                                        <input class="form-control" required id="custAddress" name="custAddress" disabled> </input>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                <div class="card" id="cardPayments">
+                    <div class="card-header">
+                      <h2 class="mb-0">
+                        <button class="btn btn-link d-flex w-100 collapsed" type="button" data-toggle="collapse" data-target="#salesOrderCard4" aria-expanded="false">
+                          PAYMENTS
+                        </button>
+                      </h2>
+                    </div>
+                    <div id="salesOrderCard4" class="collapse">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col">
+                            <div class="row">
+                                <div class="col">
+                                    <label class="text-nowrap align-middle">
+                                        Payment Method
+                                    </label>
+                                    <select class="form-control sellable" id="salePaymentMethod" name="salePaymentMethod" onchange="selectPaymentMethod();">
+                                        <option selected disabled>Please Select</option>
+                                        <option value="Cash">Full Payment(Cash)</option>
+                                        <option value="Installment">Installment</option>
+                                    </select>
+                                </div>
+                                <br>
+                                <div class="col">
+                                    <label class="text-nowrap align-middle">
+                                        Payment Type
+                                    </label>
+                                      <select class="form-control sellable" id="paymentType" name="paymentType" onchange="selectPaymentType();">
+                                          <option selected disabled>Payment Type...</option>
+                                          <option value="Cash">Cash</option>
+                                          <option value="Cheque">Cheque</option>
+                                      </select>
+                                </div>
+                                <br>
+                            </div>
+                            <br>
+                            
+                            <div class="col" id="account_no_div" name="account_no_div" style="display:none">
+                                <label >
+                                    Account No.
+                                </label>
+                                <input type="text" class="form-input form-control" id="account_no" name="account_no" placeholder="Account No">
+                            </div>
+                            <br>
+
+                            <div class="row" id="paymentInstallment" style="display:none;" onchange="installmentType()" >
+                                <div class="col">
+                                    <label class="text-nowrap align-middle">
+                                        Initial Payment(Downpayment)
+                                    </label>
+                                    <input type="number" class="form-input form-control sellable" id="saleDownpaymentCost" name="saleDownpaymentCost" placeholder="0.00">
+                                </div>
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label class="text-nowrap align-middle">
+                                            Installment Type
+                                        </label>
+                                        <select class="form-control" id="installmentType" name="installmentType">
+                                            <option selected disabled>Please Select</option>
+                                            <option value = "3 months">Installment 3 months</option>
+                                            <option value = "6 months">Installment 6 months</option>
+                                            <option value = "12 months">Installment 12 months</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="table border-bottom table-hover table-bordered">
+                              <thead class="border-top border-bottom bg-light">
+                                <tr class="text-muted">
+                                  <td></td>
+                                  <td class="text-center">Description</td>
+                                  <td class="text-center">Amount Due</td>
+                                </tr>
+                              </thead>
+                              <tbody id="payments_table_body">
+                                
+                              </tbody>
+                              <tfoot>
+                                <tr id="rowTotal">
+                                  <td></td>
+                                  <td class="font-weight-bold text-center">TOTAL AMOUNT:</td>
+                                  <td class="text-center">
+                                    <input class="form-control" type="text" id="payment_total_amount" placeholder="0.00" disabled>
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                        
+                        {{--
+                        Uneccessaru
+                         <div class="row">
+                          <div class="col-12 d-flex justify-content-center">
+                            <button type="button" class="btn btn-primary m-1" data-dismiss="modal" data-target="#newSalePrompt" data-name="Work Order" data-parent="manufacturing">
+                              <a class="" href="#" style="text-decoration: none;color:white">
+                                Save Payment
+                              </a>
+                          </div>
+                        </div> --}}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card" id="cardPaymentLogs">
+                    <div class="card-header">
+                      <h2 class="mb-0">
+                        <button class="btn btn-link d-flex w-100 collapsed" type="button" data-toggle="collapse" data-target="#salesOrderCard5" aria-expanded="false">
+                          PAYMENT LOGS
+                        </button>
+                      </h2>
+                    </div>
+                    <div id="salesOrderCard5" class="collapse">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col">
+                            <table class="table border-bottom table-hover">
+                              <thead class="border-top border-bottom bg-light">
+                                <tr class="text-muted">
+                                  <td class="text-center font-weight-bold">Payment ID</td>
+                                  <td class="text-center font-weight-bold">Date Paid</td>
+                                  <td class="text-center font-weight-bold">Amount Paid</td>
+                                  <td class="text-center font-weight-bold">Description</td>
+                                  <td class="text-center font-weight-bold">Payment Method</td>
+                                  <td class="text-center font-weight-bold">Status</td>
+                                  <td class="text-center font-weight-bold">Transaction Handler</td>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td class="text-center">PID-000000001</td>
+                                  <td class="text-center">February 20, 2021</td>
+                                  <td class="text-center">5000.00</td>
+                                  <td class="text-center">Downpayment</td>
+                                  <td class="text-center">Cash</td>
+                                  <td class="text-center">Paid</td>
+                                  <td class="text-center">Juan Dela Curz</td>
+                                </tr>
+                                <tr>
+                                  <td class="text-center">PID-000000001</td>
+                                  <td class="text-center">March 1, 2021</td>
+                                  <td class="text-center">5000.00</td>
+                                  <td class="text-center">Downpayment</td>
+                                  <td class="text-center">Check</td>
+                                  <td class="text-center">Pending</td>
+                                  <td class="text-center">Juan Dela Curz</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                <!--
+                    'salesorderform.php' contents end here
+                -->
+            </div>
+            <script src="{{ asset('js/salesorder.js') }}"></script>
+            <div class="modal-footer d-flex">
+                <div class="col">
+                    <button class="btn btn-primary m-1 float-right menu" data-dismiss="modal" data-target="#newSalePrompt" data-name="Work Order" data-parent="manufacturing" id="hiddenworkorder" hidden> </button>
+                    <button type="submit" class="btn btn-primary m-1" id="gotoworkorder" value="Submit" class="btn btn-primary m-1 float-right menu" id="toWorkOrder">
+                        Save go to work order
+                    </button>
+                </div>
+                <span id="notif" class="mr-auto text-danger">There are Missing inputs!</span>
+                <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+            </div>
+        </div>
+    </div>
+    </form>
+    <!--End Form-->
+</div>
+<!-- EIDT MODAL SALES ORDER END -->
 
 
 <script type="text/javascript">
